@@ -1,0 +1,60 @@
+services:
+  # ----------------------------------------------------------------------------
+  # Backend Server Web Service (Express API + Baileys + Safe Mode)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: blastup-server
+    env: node
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: COOKIE_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        sync: false
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: LOG_LEVEL
+        value: info
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: blastup-redis
+          property: connectionString
+
+  # ----------------------------------------------------------------------------
+  # Frontend Client Web Service (Next.js App)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: blastup-client
+    env: node
+    rootDir: client
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    plan: starter
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+
+  # ----------------------------------------------------------------------------
+  # Redis Service for Safe Mode Anti-Ban System
+  # ----------------------------------------------------------------------------
+  - type: redis
+    name: blastup-redis
+    plan: starter
+    ipAllowList: []
