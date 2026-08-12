@@ -19,8 +19,11 @@ const envSchema = z.object({
   COOKIE_SECRET: z.string().min(32, 'COOKIE_SECRET must be at least 32 characters'),
   BCRYPT_ROUNDS: z.string().default('12').transform(Number),
   // Admin seed
-  ADMIN_USERNAME: z.string().min(3, 'ADMIN_USERNAME is required'),
-  ADMIN_PASSWORD: z.string().min(8, 'ADMIN_PASSWORD must be at least 8 characters'),
+  ADMIN_USERNAME: z.string().min(3, 'ADMIN_USERNAME is required').default('admin'),
+  ADMIN_PASSWORD: z
+    .string()
+    .min(8, 'ADMIN_PASSWORD must be at least 8 characters')
+    .default('change_this_password_immediately'),
   // CORS
   CLIENT_URL: z.string().default('http://localhost:3000'),
   // File uploads
@@ -42,7 +45,11 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error('❌ Invalid environment variables:', parsed.error.format());
+  const formattedErrors = parsed.error.format();
+  console.error('❌ Invalid environment variables:', JSON.stringify(formattedErrors, null, 2));
+  const missingKeys = Object.keys(formattedErrors).filter((k) => k !== '_errors');
+  console.error(`\n⚠️ Missing or invalid environment variable(s): ${missingKeys.join(', ')}`);
+  console.error('👉 Please set these environment variables in your deployment dashboard (e.g. Render Dashboard -> Environment Variables).\n');
   process.exit(1);
 }
 

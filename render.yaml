@@ -14,7 +14,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: MONGODB_URI
-        sync: false
+        sync: false # Set your MongoDB Atlas/database URI in Render Environment Variables
       - key: JWT_SECRET
         generateValue: true
       - key: COOKIE_SECRET
@@ -24,7 +24,7 @@ services:
       - key: ADMIN_USERNAME
         value: admin
       - key: ADMIN_PASSWORD
-        sync: false
+        value: change_this_password_immediately
       - key: LOG_LEVEL
         value: info
 
