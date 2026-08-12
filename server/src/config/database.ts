@@ -15,7 +15,8 @@ export async function connectDatabase(): Promise<void> {
   });
 
   mongoose.connection.on('error', (err) => {
-    logger.error('MongoDB connection error', { err });
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    logger.error(`MongoDB connection error: ${errorMsg}`, { error: errorMsg });
   });
 
   mongoose.connection.on('disconnected', () => {
@@ -35,12 +36,13 @@ async function attemptConnection(): Promise<void> {
     retryCount = 0;
   } catch (error) {
     retryCount++;
+    const errMsg = error instanceof Error ? error.message : String(error);
     if (retryCount <= MAX_RETRIES) {
-      logger.warn(`MongoDB connection attempt ${retryCount}/${MAX_RETRIES} failed. Retrying in ${RETRY_DELAY_MS / 1000}s...`);
+      logger.warn(`MongoDB connection attempt ${retryCount}/${MAX_RETRIES} failed: ${errMsg}. Retrying in ${RETRY_DELAY_MS / 1000}s...`);
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
       return attemptConnection();
     }
-    logger.error('Failed to connect to MongoDB after maximum retries');
+    logger.error(`Failed to connect to MongoDB after maximum retries: ${errMsg}`);
     throw error;
   }
 }
