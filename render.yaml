@@ -6,7 +6,7 @@ services:
     name: blastup-server
     env: node
     rootDir: server
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
     plan: free
     healthCheckPath: /api/health
@@ -35,7 +35,7 @@ services:
     name: blastup-client
     env: node
     rootDir: client
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
     plan: free
     envVars:
