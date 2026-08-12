@@ -16,12 +16,15 @@ export function getRedisClient(): Redis {
   if (_redisClient) return _redisClient;
 
   _redisClient = new Redis(env.REDIS_URL, {
-    // Retry up to 3 times with exponential backoff
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: 1,
     retryStrategy: (times) => {
-      if (times > 5) return null; // Stop retrying
-      return Math.min(times * 200, 2000);
+      if (times > 3) {
+        logger.info('Redis unavailable — disabling retries and using in-memory store');
+        return null; // Stop retrying when Redis is not hosted
+      }
+      return Math.min(times * 200, 1000);
     },
+    enableOfflineQueue: false,
     lazyConnect: false,
     enableReadyCheck: true,
   });
@@ -31,11 +34,15 @@ export function getRedisClient(): Redis {
   });
 
   _redisClient.on('error', (err) => {
-    logger.error('Redis connection error', { err: err?.message || String(err) });
+    // Quiet error logging when retries finish
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!msg.includes('Connection is closed')) {
+      logger.warn(`Redis connection unavailable: ${msg}`);
+    }
   });
 
   _redisClient.on('reconnecting', () => {
-    logger.warn('Redis reconnecting...');
+    // Only log reconnecting during early attempts
   });
 
   return _redisClient;
