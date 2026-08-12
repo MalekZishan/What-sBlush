@@ -70,18 +70,16 @@ export function errorHandler(err: ApiError, req: Request, res: Response, next: N
   // Log unexpected errors
   logger.error('Unhandled error', {
     message: err.message,
-    stack: env.NODE_ENV !== 'production' ? err.stack : undefined,
+    stack: err.stack,
     path: req.path,
     method: req.method,
   });
 
-  // Never expose stack traces in production
-  res.status(err.status ?? err.statusCode ?? 500).json({
+  const statusCode = err.status ?? err.statusCode ?? 500;
+  res.status(statusCode).json({
     success: false,
-    error: 'Internal Server Error',
-    message: env.NODE_ENV === 'production'
-      ? 'An unexpected error occurred'
-      : err.message,
+    error: err.name || 'Internal Server Error',
+    message: err.message || 'An unexpected error occurred',
   });
 }
 

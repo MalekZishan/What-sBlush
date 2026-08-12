@@ -28,21 +28,29 @@ export function applySecurity(app: Application): void {
     })
   );
 
-  // ── Global open CORS ─────────────────────────────────────────────
-  // Allow ALL origins — no whitelisting, no domain restrictions.
-  // Anyone can copy-paste the widget snippet and it works immediately.
+  // ── CORS Configuration with Credentials Support ───────────────────────
   app.use(
     cors({
-      origin: '*',
+      origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps, Postman) or any requesting origin
+        callback(null, true);
+      },
+      credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-api-key'],
-      exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-api-key', 'Cookie'],
+      exposedHeaders: ['X-Total-Count', 'X-Page-Count', 'Set-Cookie'],
       maxAge: 86400,
     })
   );
 
   // Handle OPTIONS preflight for all routes
-  app.options('*', cors({ origin: '*' }));
+  app.options(
+    '*',
+    cors({
+      origin: (origin, callback) => callback(null, true),
+      credentials: true,
+    })
+  );
 
   // Prevent NoSQL injection via MongoDB operators in req.body/params/query
   app.use(
